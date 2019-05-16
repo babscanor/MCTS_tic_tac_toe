@@ -1,8 +1,8 @@
 from game import *
+
 import copy
 import random
 from math import sqrt, log, inf
-
 
 def string_to_board(noeud):
     board = ["", " ", " ", " ", " ", " ", " ", " ", " ", " "]
@@ -29,6 +29,25 @@ def print_board(board):
     print("   |   |   ")
 
 
+def is_winner(board, player):
+    if (board[1] == player and board[2] == player and board[3] == player) or \
+        (board[4] == player and board[5] == player and board[6] == player) or \
+        (board[7] == player and board[8] == player and board[9] == player) or \
+        (board[1] == player and board[4] == player and board[7] == player) or \
+        (board[2] == player and board[5] == player and board[8] == player) or \
+        (board[3] == player and board[6] == player and board[9] == player) or \
+        (board[1] == player and board[5] == player and board[9] == player) or \
+        (board[3] == player and board[5] == player and board[7] == player):
+        return True
+    else:
+        return False
+
+
+def is_board_full(board):
+    if " " in board:
+        return False
+    return True
+
 def player_turn(board):
     count = 0
     for i in range (1, 10):
@@ -38,7 +57,6 @@ def player_turn(board):
         return "O"
     else:
         return "X"
-
 
 def children (board):
     player = player_turn(board)
@@ -50,106 +68,148 @@ def children (board):
             children.append(new_board)
     return children
 
+def is_final_state(node, tree):
 
-
-tree = {}
-
-tree["0"] = [[""," "," "," "," "," "," "," "," "," "], None, 0, 1, []]    # représentation, parent, nombre de victoire, nombre de visite, enfants
-
-def is_final_state(leaf):
-
-    board = tree[leaf][0]
+    board = tree[node][0]
     if is_winner(board,"X") or is_winner(board,"O") or is_board_full(board):
         return True
     return False
 
-def expansion(parent):
+def is_final_state_2(board):
+    if is_winner(board,"X") or is_winner(board,"O") or is_board_full(board):
+        return True
+    return False
 
-    global tree
 
+def expansion(root, tree):
 
-    childs = children(tree[parent][0])
+    childs = children(tree[root][0])
     for child in childs :
         i = 1
-        while tree[parent][0][i] == child[i] and i <= 9:
+        while tree[root][0][i] == child[i] and i <= 9:
             i += 1
-        tree[parent+str(i)] = [child, parent, 0, 1, []]
-        tree[parent][4].append(parent+str(i))
+        tree[root + str(i)] = [child, root, 0, 1, 0, []]
+        tree[root][5].append(root + str(i))
 
 
+def selection_node(root, tree):
 
-def selection_node(root):
-
-    global tree
-
-
-    while len(tree[root][4]) != 0:
-        max = -inf
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child > max:
-                max = uct_value_child
+    while len(tree[root][5]) != 0:
+        for child in tree[root][5]:
+            tree[child][4] = (tree[child][2]/tree[child][3]) + sqrt((7*log(tree[root][3]))/tree[child][3])
+        maximum = max([tree[child][4] for child in tree[root][5]])
         possible_leaf = []
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child == max:
+        for child in tree[root][5]:
+            if tree[child][4] == maximum:
                 possible_leaf.append(child)
-        root = possible_leaf[random.randint(0, len(possible_leaf)-1)]
+        root = possible_leaf[random.randint(0,len(possible_leaf)-1)]
+
     return root
 
 
+def empty_places(board):
+    count = 0
+    for i in range (1,10):
+        if board[i] == " ":
+            count += 1
+    return count
 
-def simulation (board):
+def situation_bizarre(board):
+    if (board[5] == "X" and board[6] == "X") or (board[5] == "X" and board[4] == "X") or (board[5] == "X" and board[2] == "X") or(board[5] == "X" and board[8] == "X"):
+        return True
 
-    global tree
 
 
-    new_board = copy.deepcopy(board)
+def simulation_1(leaf,tree,play):
+
+    new_board = copy.deepcopy(tree[leaf][0])
     empty_places = []
     for i in range (1,10):
         if new_board[i] == " ":
             empty_places.append(i)
-    while not is_board_full(new_board):
+    while not is_final_state_2(new_board):
         player = player_turn(new_board)
-        if is_winner(new_board,player) and player == "X":
-            return 3
-        if is_winner(new_board,player) and player == "0":
-            return -3
         indice = random.randint(0, len(empty_places)-1)
         new_board[empty_places[indice]] = player
         del empty_places[indice]
     if is_winner(new_board,"X"):
-        return 3
+        if play == "X":
+            return 1
+        if play == "O":
+            return -3
     if is_winner(new_board,"O"):
-        return -3
+        if play == "X":
+            return -3
+        if play == "O":
+            return 1
     return 0
+
+def simulation_2(leaf,tree,play):
+
+
+    new_board = copy.deepcopy(tree[leaf][0])
+    empty_places = []
+    for i in range (1,10):
+        if new_board[i] == " ":
+            empty_places.append(i)
+    while not is_final_state_2(new_board):
+        player = player_turn(new_board)
+        indice = random.randint(0, len(empty_places)-1)
+        new_board[empty_places[indice]] = player
+        del empty_places[indice]
+    if is_winner(new_board,"X"):
+        if play == "X":
+            return 1
+        if play == "O":
+            return -20
+    if is_winner(new_board,"O"):
+        if play == "X":
+            return -20
+        if play == "O":
+            return 1
+    return 0
+
+
 
 
 
 def mcts(nombre_iteration, root, player):
 
-    global tree
+
+    tree = {}
+    tree[root] = [string_to_board(root), None, 0, 1, 0, []]
+
 
     for i in range (nombre_iteration):          # on répète le même processus
 
         # selection
 
-        leaf = selection_node(root)
-
+        leaf = selection_node(root, tree)
+        #print(leaf)
         # expansion
 
-        if not is_final_state(leaf):
-            expansion(leaf)
-            leaf = tree[leaf][4][random.randint(0, len(tree[leaf][4])-1)]
+        if not is_final_state(leaf, tree):
+            expansion(leaf, tree)
+            leaf = tree[leaf][5][random.randint(0, len(tree[leaf][5])-1)]
 
             # simulation
 
-            result = simulation(tree[leaf][0])
+            if empty_places(tree[leaf][0]) <= 5:
+                result = simulation_2(leaf,tree,player)
 
+
+            else:
+                result = simulation_1(leaf, tree, player)
         else :
-            result = simulation(tree[leaf][0])
+
+            if empty_places(tree[leaf][0]) <= 5:
+                result = simulation_2(leaf,tree,player)
+
+            else:
+                result = simulation_1(leaf, tree, player)
 
         # backpropagation
+
 
         while leaf != root:
             tree[leaf][3] += 1
@@ -158,99 +218,111 @@ def mcts(nombre_iteration, root, player):
         tree[root][3] += 1
         tree[root][2] += result
 
-
     # renvoyer le meilleur choix possible
 
-    if player == "X":
-        max = -inf
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child > max:
-                max = uct_value_child
-        possible_leaf = []
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child == max:
-                possible_leaf.append(child)
-        return possible_leaf[random.randint(0, len(possible_leaf)-1)]
+    for child in tree[root][5]:
+        tree[child][4] = (tree[child][2]/tree[child][3]) + sqrt((7*log(tree[root][3]))/tree[child][3])
+        #print(tree[child])
+    maximum = max([tree[child][4] for child in tree[root][5]])
+    possible_leaf = []
+    for child in tree[root][5]:
+        if tree[child][4] == maximum:
+            possible_leaf.append(child)
+    move = possible_leaf[random.randint(0,len(possible_leaf)-1)]
 
-    if player == "O":
-        min = inf
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child < min:
-                min = uct_value_child
-        possible_leaf = []
-        for child in tree[root][4]:
-            uct_value_child = (tree[child][2]/tree[child][3]) + sqrt((2*log(tree[root][3]))/tree[child][3])
-            if uct_value_child == min:
-                possible_leaf.append(child)
-        return possible_leaf[random.randint(0, len(possible_leaf)-1)]
+    return move
 
 
 
-root = "0"
-
+root = "O"
 board = ["", " ", " ", " ", " ", " ", " ", " ", " ", " "]
 
+#for i in range (10):
 
-# while True:
-#
-#
-#     print_board(board)
-#
-#     # Get X input
-#
-#     best_move_X = mcts(10000,root,"X")
-#
-#     choice = input("Choississez un emplacement pour X (le meilleur étant "+best_move_X[len(best_move_X)-1]+") :")
-#     choice = int(choice)
-#
-#     # Check empty space
-#     while board[choice] != " ":
-#         print("Sorry that space is not empty")
-#         choice = input("Choississez un emplacement pour X : ")
-#         choice = int(choice)
-#
-#     board[choice] = "X"
-#
-#     root += str(choice)
-#     # Check for X win
-#     if is_winner(board, 'X'):
-#         print_board(board)
-#         print("X wins! Congratulations!")
-#         break
-#
-#     #Check for a tie
-#     if is_board_full(board):
-#         print("Tie!")
-#         break
-#
-#
-#     # Get AI move
-#
-#
-#     best_move_O = mcts(10000,root,"O")
-#     board[int(best_move_O[len(best_move_O)-1])] = "O"
-#     root = best_move_O
-#
-#
-#     # Check for O win
-#     if is_winner(board, 'O'):
-#         print_board(board)
-#         print("O wins! Congratulations!")
-#         break
-#
-#     #Check for a tie
-#     if is_board_full(board):
-#         print("Tie!")
-#         break
-#
+   # print(mcts(500000,"05173","X"))
 
 
 
 
+while True:
 
+    print_board(board)
+
+    # Get X input
+
+    '''
+    dico_X = {}
+    for i in range (10):
+        resultat = mcts(100000,root,"X")
+        if resultat in dico_X:
+            dico_X[resultat] += 1
+        else:
+            dico_X[resultat] = 1
+    maximum_X = max(dico_X.values())
+    best_move_X = None
+    for key in dico_X.keys():
+        if dico_X[key] == maximum_X:
+            best_move_X = key
+
+    for child in tree[root][4]:
+        print(tree[child])
+'''
+
+    choice = input("Choississez un emplacement pour X : ")
+    choice = int(choice)
+
+    # Check empty space
+    #while board[choice] != " ":
+       # print("Sorry that space is not empty")
+        #choice = input("Choississez un emplacement pour X : ")
+        #choice = int(choice)
+
+    board[choice] = "X"
+
+    root += str(choice)
+
+    # Check for X win
+    if is_winner(board, 'X'):
+        print_board(board)
+        print("X wins! Congratulations!")
+        break
+
+    #Check for a tie
+    if is_board_full(board):
+        print("Tie!")
+        break
+
+
+    # Get AI move
+
+    dico_O = {}
+    for i in range (10):
+        resultat = mcts(100000,root,"O")
+        if resultat in dico_O:
+            dico_O[resultat] += 1
+        else:
+            dico_O[resultat] = 1
+    maximum_O = max(dico_O.values())
+    best_move_O = None
+    for key in dico_O.keys():
+        if dico_O[key] == maximum_O:
+            best_move_O = key
+
+    board[int(best_move_O[len(best_move_O)-1])] = "O"
+    root = best_move_O
+
+
+    # Check for O win
+    if is_winner(board, 'O'):
+        print_board(board)
+        print("O wins! Congratulations!")
+        break
+
+    #Check for a tie
+    if is_board_full(board):
+        print_board(board)
+        print("Tie!")
+        break
 
 
 
