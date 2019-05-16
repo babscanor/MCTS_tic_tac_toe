@@ -86,7 +86,8 @@ def move_manual9():
 board = [""," "," "," "," "," "," "," "," "," "]
 
 fenetre=Tk()
-fenetre.title('Tic_tac_toe')
+fenetre.title('Tic_Tac_Toe')
+fenetre.iconbitmap("logomorpion.png")
 fenetre.geometry('500x500')
 titre=Label(fenetre,text="Tic tac toe", font=('Times New Roman',30,'bold') )
 titre.pack(side="top")
@@ -150,7 +151,19 @@ def ai_move():
 
     # Get AI move
 
-    best_move_O = mcts(10000,root,"O")
+    dico_O = {}
+    for i in range (10):
+        resultat = mcts(10000,root,"O")
+        if resultat in dico_O:
+            dico_O[resultat] += 1
+        else:
+            dico_O[resultat] = 1
+    maximum_O = max(dico_O.values())
+    best_move_O = None
+    for key in dico_O.keys():
+        if dico_O[key] == maximum_O:
+            best_move_O = key
+
     board[int(best_move_O[len(best_move_O)-1])] = "O"
     root = best_move_O
     update_fenetre()
@@ -168,6 +181,12 @@ def ai_move():
         update_fenetre()
 
 fenetre.mainloop()
+
+
+
+
+
+
 
 
 
