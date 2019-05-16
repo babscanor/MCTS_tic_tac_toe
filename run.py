@@ -8,50 +8,77 @@ from MCTS import *
 
 root = "0"
 
+def postobutton(couple):
+    compteur=1
+    for j in [100+k*100 for k in range(3)]:
+        for i in [100+k*100 for k in range(3)]:
+            if i<=couple[0]<i+100 and j<=couple[1]<j+100 :
+                return compteur
+            compteur+=1
+
 def move_manual1():
+    global choice
     if board[1]==" " and board.count("X")==board.count("O"):
         board[1]="X"
         but0["text"]=board[1]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual2():
+    global choice
     if board[2]==" " and board.count("X")==board.count("O"):
         board[2]="X"
         but1["text"]=board[2]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual3():
+    global choice
     if board[3]==" " and board.count("X")==board.count("O"):
         board[3]="X"
         but2["text"]=board[3]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual4():
+    global choice
     if board[4]==" " and board.count("X")==board.count("O"):
         board[4]="X"
         but3["text"]=board[4]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
+        print(choice)
         ai_move()
 def move_manual5():
+    global choice
     if board[5]==" " and board.count("X")==board.count("O"):
         board[5]="X"
         but4["text"]=board[5]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual6():
+    global choice
     if board[6]==" " and board.count("X")==board.count("O"):
         board[6]="X"
         but5["text"]=board[6]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual7():
+    global choice
     if board[7]==" " and board.count("X")==board.count("O"):
         board[7]="X"
         but6["text"]=board[7]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual8():
+    global choice
     if board[8]==" " and board.count("X")==board.count("O"):
         board[8]="X"
         but7["text"]=board[8]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 def move_manual9():
+    global choice
     if board[9]==" " and board.count("X")==board.count("O"):
         board[9]="X"
         but8["text"]=board[9]
+        choice=postobutton((fenetre.winfo_pointerx()-fenetre.winfo_rootx(),fenetre.winfo_pointery()-fenetre.winfo_rooty()))
         ai_move()
 
 
@@ -107,6 +134,8 @@ root = "0"
 
 def ai_move():
     global root
+    global choice
+    root+=str(choice)
     # Check for X win
     if is_winner(board, 'X'):
         winx=Label(fenetre, text="X wins! Congratulations!")
@@ -119,7 +148,7 @@ def ai_move():
         tie.pack(side="bottom")
         update_fenetre()
 
-     # Get AI move
+    # Get AI move
 
     best_move_O = mcts(10000,root,"O")
     board[int(best_move_O[len(best_move_O)-1])] = "O"
@@ -139,6 +168,8 @@ def ai_move():
         update_fenetre()
 
 fenetre.mainloop()
+
+
 
 
 
